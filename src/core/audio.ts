@@ -10,6 +10,14 @@ import { getPref, setPref } from './metrics';
 
 type Surface = 'dirt' | 'grass' | 'deck';
 
+/** 배경 소리 크기 (여기 숫자만 바꾸면 전체 균형이 바뀝니다) */
+const AMBIENCE_GAIN = 0.3; // 숲 소리 전체 크기
+const BODY_GAIN = 1.0;
+const RUSTLE_GAIN = 1.3;
+const AIR_GAIN = 0.5;
+const CRICKET_GAIN = 1.0;
+const BIRD_GAIN = 1.0;
+
 class ForestAudio {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
@@ -96,31 +104,40 @@ class ForestAudio {
     o.start();
   }
 
+  /**
+   * 바람과 나뭇잎 소리.
+   * 휴대폰·노트북 스피커는 낮은 음을 거의 내지 못하므로, 들리는 음역(약 400Hz~4kHz)에
+   * 소리를 두고 낮은 바람은 헤드폰용으로 조금만 깔아 둡니다.
+   */
   private buildWind(): void {
     const ctx = this.ctx!;
     this.windGain = ctx.createGain();
     this.windGain.gain.value = 1;
     this.windGain.connect(this.ambience!);
-    // 낮게 깔리는 바람
-    const lp = ctx.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.value = 420;
-    lp.Q.value = 0.4;
-    const g1 = ctx.createGain();
-    g1.gain.value = 0.32;
-    this.noiseSource().connect(lp).connect(g1).connect(this.windGain);
-    this.lfo(0.07, 180, lp.frequency);
-    this.lfo(0.045, 0.12, g1.gain);
-    // 나뭇잎 스치는 소리
-    const bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass';
-    bp.frequency.value = 1500;
-    bp.Q.value = 0.5;
-    const g2 = ctx.createGain();
-    g2.gain.value = 0.07;
-    this.noiseSource().connect(bp).connect(g2).connect(this.windGain);
-    this.lfo(0.11, 0.045, g2.gain);
-    this.lfo(0.06, 500, bp.frequency);
+    const layer = (type: BiquadFilterType, freq: number, q: number, gain: number): { f: BiquadFilterNode; g: GainNode } => {
+      const f = ctx.createBiquadFilter();
+      f.type = type;
+      f.frequency.value = freq;
+      f.Q.value = q;
+      const g = ctx.createGain();
+      g.gain.value = gain;
+      this.noiseSource().connect(f).connect(g).connect(this.windGain!);
+      return { f, g };
+    };
+    // 숲 전체에 깔리는 바람
+    const body = layer('bandpass', 480, 0.45, BODY_GAIN);
+    this.lfo(0.05, BODY_GAIN * 0.3, body.g.gain);
+    this.lfo(0.07, 140, body.f.frequency);
+    // 나뭇잎 스치는 소리(천천히 밀려왔다 잦아듦)
+    const rustle = layer('bandpass', 1900, 0.55, RUSTLE_GAIN);
+    this.lfo(0.09, RUSTLE_GAIN * 0.42, rustle.g.gain);
+    this.lfo(0.031, RUSTLE_GAIN * 0.28, rustle.g.gain);
+    this.lfo(0.06, 600, rustle.f.frequency);
+    // 높은 가지의 사각거림
+    const air = layer('highpass', 3800, 0.5, AIR_GAIN);
+    this.lfo(0.13, AIR_GAIN * 0.5, air.g.gain);
+    // 낮게 깔리는 바람(헤드폰에서 공간감)
+    layer('lowpass', 300, 0.4, 0.1);
   }
 
   private buildCrickets(): void {
@@ -145,8 +162,9 @@ class ForestAudio {
       } else out.connect(this.ambience!);
       o.start();
     };
-    voice(4350, 31, 0.53, -0.6, 0.0085);
-    voice(3820, 27, 0.37, 0.55, 0.007);
+    voice(4350, 31, 0.53, -0.6, 0.024 * CRICKET_GAIN);
+    voice(3820, 27, 0.37, 0.55, 0.02 * CRICKET_GAIN);
+    voice(4780, 36, 0.21, 0.1, 0.012 * CRICKET_GAIN);
   }
 
   private buildStream(): void {
@@ -184,7 +202,7 @@ class ForestAudio {
         if (this.ctx && this.enabled && this.inForest && this.ctx.state === 'running') this.bird();
         this.scheduleBird();
       },
-      7000 + Math.random() * 11000,
+      5000 + Math.random() * 7000,
     );
   }
 
@@ -195,7 +213,7 @@ class ForestAudio {
     const base = 2300 + Math.random() * 1300;
     const n = 2 + Math.floor(Math.random() * 3);
     const out = ctx.createGain();
-    out.gain.value = 0.022 + Math.random() * 0.012;
+    out.gain.value = (0.07 + Math.random() * 0.05) * BIRD_GAIN;
     const lp = ctx.createBiquadFilter();
     lp.type = 'lowpass';
     lp.frequency.value = 3600;
@@ -230,7 +248,7 @@ class ForestAudio {
   }
   private applyAmbience(boost = 1): void {
     if (!this.ctx || !this.ambience) return;
-    this.ambience.gain.setTargetAtTime(this.inForest ? 0.55 * boost : 0, this.ctx.currentTime, 0.5);
+    this.ambience.gain.setTargetAtTime(this.inForest ? AMBIENCE_GAIN * boost : 0, this.ctx.currentTime, 0.5);
   }
 
   setEnabled(on: boolean): void {
