@@ -44,7 +44,7 @@ function art(): string {
     <path d="M520 800 Q560 700 600 656 Q640 700 700 800Z" fill="#9a7b56"/>
     <g><rect x="505" y="560" width="14" height="120" fill="#5e432c"/><rect x="681" y="560" width="14" height="120" fill="#5e432c"/><rect x="480" y="548" width="240" height="16" rx="3" fill="#5e432c"/><rect x="528" y="572" width="144" height="54" rx="4" fill="#4a3321" stroke="#f1ecdc" stroke-opacity="0.5" stroke-width="2"/>
       <text x="600" y="598" text-anchor="middle" font-size="24" font-weight="700" fill="#f6efdc" font-family="serif">${COPY.forest.plaque.big}</text>
-      <text x="600" y="617" text-anchor="middle" font-size="9.500" fill="#ecdfbd" font-family="sans-serif">${COPY.forest.plaque.small}</text></g>
+      <text x="600" y="617" text-anchor="middle" font-size="7" textLength="130" lengthAdjust="spacingAndGlyphs" fill="#ecdfbd" font-family="sans-serif">${COPY.forest.plaque.small}</text></g>
     ${lamp(470, 690)}${lamp(730, 690)}${lamp(330, 720)}${lamp(880, 716)}
     <g><rect x="800" y="716" width="90" height="8" rx="3" fill="#b98a58"/><rect x="806" y="724" width="6" height="22" fill="#2f3230"/><rect x="878" y="724" width="6" height="22" fill="#2f3230"/><rect x="800" y="696" width="90" height="7" rx="3" fill="#b98a58"/></g>
     ${tree(60, 730, 2.2, '#b8382f')}${tree(1150, 740, 2.300, '#cf7a34')}

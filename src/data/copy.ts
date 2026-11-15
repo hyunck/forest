@@ -12,9 +12,9 @@
  */
 
 /** 연구 주체 서명 · 전체 표기 (팀이 여기 한 곳만 바꾸면 전체 화면에 반영됩니다) */
-export const SIGNATURE_FULL = '한국산림복지진흥원 산림복지디지털연구실';
+export const SIGNATURE_FULL = '한국산림복지진흥원 산림복지디지털연구실 효과연구확산팀';
 /** 연구 주체 서명 · 짧은 표기 */
-export const SIGNATURE_SHORT = '산림복지디지털연구실';
+export const SIGNATURE_SHORT = '산림복지디지털연구실 효과연구확산팀';
 
 /** 공간명 */
 export const SPACE_NAME = '확산의 숲';

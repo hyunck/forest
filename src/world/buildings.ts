@@ -256,11 +256,43 @@ export function makePlaqueTexture(): THREE.CanvasTexture {
   g.shadowColor = 'rgba(0,0,0,0.45)';
   g.shadowBlur = 8;
   g.shadowOffsetY = 3;
-  g.font = '600 214px "Noto Serif KR", "Pretendard Variable", serif';
-  g.fillText(COPY.forest.plaque.big, cv.width / 2, 186);
-  g.font = '600 76px "Pretendard Variable", Pretendard, sans-serif';
+  // 작은 글씨: 한 줄에 들어가면 한 줄, 길면(팀 이름까지 넣은 경우 등) 띄어쓰기에서 두 줄로 나눔
+  const smallFont = (px: number): string => `600 ${px}px "Pretendard Variable", Pretendard, sans-serif`;
+  const maxW = cv.width - 130;
+  const wrap = (px: number): string[] => {
+    g.font = smallFont(px);
+    const lines: string[] = [];
+    let cur = '';
+    for (const word of COPY.forest.plaque.small.split(' ')) {
+      const next = cur ? cur + ' ' + word : word;
+      if (cur && g.measureText(next).width > maxW) {
+        lines.push(cur);
+        cur = word;
+      } else cur = next;
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  };
+  let small = 76;
+  let lines = wrap(small);
+  if (lines.length > 1) {
+    small = 66;
+    lines = wrap(small);
+    while (lines.length > 2 && small > 40) {
+      small -= 2;
+      lines = wrap(small);
+    }
+  }
+  const two = lines.length > 1;
+  g.font = `600 ${two ? 184 : 214}px "Noto Serif KR", "Pretendard Variable", serif`;
+  g.fillText(COPY.forest.plaque.big, cv.width / 2, two ? 158 : 186);
+  g.font = smallFont(small);
   g.fillStyle = '#ecdfbd';
-  g.fillText(COPY.forest.plaque.small, cv.width / 2, 372);
+  if (two) {
+    lines.slice(0, 2).forEach((line, i) => g.fillText(line, cv.width / 2, 318 + i * (small + 16)));
+  } else {
+    g.fillText(lines[0] || '', cv.width / 2, 372);
+  }
   const tex = new THREE.CanvasTexture(cv);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 8;
