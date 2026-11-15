@@ -20,6 +20,7 @@ import {
 import { buildVegetation, wind, type Vegetation } from '../../world/vegetation';
 import { buildRidges, buildSky, buildStars } from '../../world/sky';
 import { FallingLeaves, LightMotes } from '../../world/particles';
+import { buildAnimals } from '../../world/animals';
 import { POINT_LIGHTS } from './layout';
 
 export interface World {
@@ -78,6 +79,10 @@ export function buildDaejeonWorld(season: SeasonPalette, opts: { mobile: boolean
   // 나무·수풀
   const vegetation: Vegetation = buildVegetation(terrain, season);
   scene.add(vegetation.group);
+
+  // 고양이·다람쥐
+  const animals = buildAnimals(groundY);
+  scene.add(animals.group);
 
   // 하늘·별·원경 능선
   const sky = buildSky(season);
@@ -141,6 +146,7 @@ export function buildDaejeonWorld(season: SeasonPalette, opts: { mobile: boolean
       // 그림자는 아바타 둘레만
       sun.target.position.copy(focus);
       sun.position.copy(focus).addScaledVector(sunDir, 110);
+      animals.update(dt, t, focus, opts.reducedMotion);
       if (high && !opts.reducedMotion) {
         leaves.update(dt, t, camera.position, groundY);
         motes.update(t);

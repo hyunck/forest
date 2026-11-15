@@ -402,3 +402,37 @@ export const VISITORS: VisitorDef[] = [
   { color: 'moss', route: ['v1', 'v2', 'v3', 'v4', 'v5', 'v4', 'v3', 'v2'] },
   { color: 'beige', route: ['d1', 'd2', 'd3', 'd4', 'd3', 'd2'] },
 ];
+
+/**
+ * 숲의 작은 친구들 (고양이·다람쥐)
+ *  - 고양이: pose 'sit'(앉음) / 'loaf'(식빵 자세). lift는 올라앉은 가구의 높이, y는 데크 위 높이
+ *  - 다람쥐: spots의 자리들을 총총 옮겨 다님(나무 둘레)
+ */
+export interface AnimalDef {
+  kind: 'cat' | 'squirrel';
+  /** 고양이 털색: cheese(치즈) / gray(고등어) / white(흰 바탕) */
+  coat: string;
+  pose?: 'sit' | 'loaf';
+  x: number;
+  z: number;
+  /** 땅에서 띄울 높이(돌담·평상 위) */
+  lift?: number;
+  /** 데크 위처럼 높이를 직접 정할 때 */
+  y?: number;
+  look?: [number, number];
+  spots?: Array<[number, number]>;
+}
+export const ANIMALS: AnimalDef[] = [
+  // 입구 돌담 위에 앉아 길을 내려다보는 치즈 고양이
+  { kind: 'cat', coat: 'cheese', pose: 'sit', x: 1.3, z: 44.15, lift: 0.81, look: [-3.5, 52] },
+  // 잔디광장 평상 위에서 식빵 굽는 고등어 고양이
+  { kind: 'cat', coat: 'gray', pose: 'loaf', x: -8.65, z: -1.9, lift: 0.45, look: [4, 6] },
+  // 관망데크 난간 옆에서 풍경을 보는 흰 고양이
+  { kind: 'cat', coat: 'white', pose: 'sit', x: 66.5, z: -5.6, y: 12.4, look: [50, -8] },
+  // 입구 단풍나무 둘레의 다람쥐
+  { kind: 'squirrel', coat: '', x: -8.5, z: 41.7, spots: [[-8.5, 41.7], [-10.9, 39.5], [-8.2, 39.0]] },
+  // 잔디광장 가장자리 단풍나무 둘레의 다람쥐
+  { kind: 'squirrel', coat: '', x: 12.5, z: -10.9, spots: [[12.5, -10.9], [15.0, -10.4], [12.9, -8.0]] },
+  // 골짜기숲길 편백나무 둘레의 다람쥐
+  { kind: 'squirrel', coat: '', x: -29.4, z: -32.3, spots: [[-29.4, -32.3], [-27.0, -30.2], [-27.4, -33.0]] },
+];

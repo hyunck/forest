@@ -83,6 +83,7 @@ Netlify · Vercel · Cloudflare Pages 등에서는 빌드 명령 `npm run build`
 | **연구 주체 서명** (전체 화면에 한 번에 반영) | `src/data/copy.ts` 맨 위의 `SIGNATURE_FULL`, `SIGNATURE_SHORT` |
 | 숲 목록, 지역 표기, 열림/잠김, 진입 문구, 예약 주소 | `src/data/forests.json` |
 | 건물 · 길 · 벤치 · 연구원 · 표찰 · 정원등 위치 | `src/scenes/daejeon/layout.ts` |
+| 고양이 · 다람쥐의 위치와 마릿수 | `src/scenes/daejeon/layout.ts` 맨 아래의 `ANIMALS` |
 | 하늘 · 조명 · 나뭇잎 색 (계절) | `src/scenes/seasons.ts` |
 | 아바타 옷 색 | `src/data/outfits.ts` |
 
@@ -118,7 +119,7 @@ src/
   core/                   링크 파라미터, 측정(로컬), 소리(직접 합성), 도우미
   ui/                     화면들, HUD, 털어놓기, 측정 패널, 3D 대체 화면
   game/ForestGame.ts      이동 · 카메라 · 앉기 · 엘리베이터 · 상호작용
-  world/                  지형, 길찾기, 건물, 소품, 나무, 하늘, 아바타, 파티클
+  world/                  지형, 길찾기, 건물, 소품, 나무, 하늘, 아바타, 동물, 파티클
   scenes/daejeon/         국립대전숲체원 배치 데이터와 장면 조립
   scenes/seasons.ts       계절 팔레트 (가을 기본, 봄 벚꽃은 정의만)
   presence/               함께 있는 방문자 (지금은 시연용 MockPresence)
