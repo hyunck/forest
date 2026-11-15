@@ -1,0 +1,25 @@
+[
+  {
+    "id": "daejeon",
+    "name": "국립대전숲체원",
+    "region": "대전 유성",
+    "group": "숲체원",
+    "status": "open",
+    "preparingLine": "대전숲체원의 숲길을 준비하고 있어요.",
+    "entryLine": "이 숲의 효과도 산림복지디지털연구실이 연구하고 있어요.",
+    "bookingUrl": "https://www.sooperang.or.kr",
+    "thumbnailHue": 28
+  },
+  { "id": "hoengseong", "name": "국립횡성숲체원", "region": "강원 횡성", "group": "숲체원", "status": "soon", "thumbnailHue": 96 },
+  { "id": "chilgok", "name": "국립칠곡숲체원", "region": "경북 칠곡", "group": "숲체원", "status": "soon", "thumbnailHue": 78 },
+  { "id": "jangseong", "name": "국립장성숲체원", "region": "전남 장성", "group": "숲체원", "status": "soon", "thumbnailHue": 132 },
+  { "id": "cheongdo", "name": "국립청도숲체원", "region": "경북 청도", "group": "숲체원", "status": "soon", "thumbnailHue": 58 },
+  { "id": "chuncheon", "name": "국립춘천숲체원", "region": "강원 춘천", "group": "숲체원", "status": "soon", "thumbnailHue": 168 },
+  { "id": "naju", "name": "국립나주숲체원", "region": "전남 나주", "group": "숲체원", "status": "soon", "thumbnailHue": 112 },
+  { "id": "yeongju", "name": "국립산림치유원", "region": "경북 영주·예천", "group": "산림치유원", "status": "soon", "thumbnailHue": 110 },
+  { "id": "jinan", "name": "국립진안고원산림치유원", "region": "전북 진안", "group": "산림치유원", "status": "soon", "thumbnailHue": 150 },
+  { "id": "yangpyeong", "name": "국립양평치유의숲", "region": "경기 양평", "group": "치유의숲", "status": "soon", "thumbnailHue": 88 },
+  { "id": "daegwallyeong", "name": "국립대관령치유의숲", "region": "강원 강릉", "group": "치유의숲", "status": "soon", "thumbnailHue": 182 },
+  { "id": "gimcheon", "name": "국립김천치유의숲", "region": "경북 김천", "group": "치유의숲", "status": "soon", "thumbnailHue": 66 },
+  { "id": "daeunsan", "name": "국립대운산치유의숲", "region": "울산", "group": "치유의숲", "status": "soon", "thumbnailHue": 140 }
+]

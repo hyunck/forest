@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1b211b" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="description" content="다녀온 숲에 다시 앉아 쉬어 가는 온라인 숲 쉼터. 한국산림복지진흥원 산림복지디지털연구실이 연구하는 숲." />
+    <meta property="og:title" content="확산의 숲 온라인 쉼터" />
+    <meta property="og:description" content="퇴근하고 10분, 다녀온 숲에 다시 앉아 쉬어 가세요." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <title>확산의 숲 온라인 쉼터</title>
+    <style>
+      /* 스크립트가 뜨기 전에도 어두운 숲색 배경이 먼저 보이게 */
+      html, body { margin: 0; height: 100%; background: #1b211b; color: #d9d3bf; }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="scene" aria-hidden="true"></canvas>
+      <div id="fallback-art" hidden></div>
+      <div id="vignette" aria-hidden="true"></div>
+    </div>
+    <noscript>
+      <p style="padding: 24px; font-size: 18px; line-height: 1.6">
+        확산의 숲 온라인 쉼터는 자바스크립트를 켜야 열립니다.
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+Thumbs.db
+# 참고 이미지는 저장소와 배포 빌드에 넣지 않습니다(공식 안내도·타 서비스 화면 포함)
+reference/
+.claude/
