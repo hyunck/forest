@@ -1,7 +1,7 @@
 /**
  * 소리 (제작 지시서 5장)
  * 음원 파일 없이 Web Audio API로 직접 합성합니다. (CREDITS.md 참고)
- *  - 숲 앰비언스: 바람, 먼 새소리, 풀벌레, 개울 물소리(골짜기숲길 근처에서만)
+ *  - 숲 앰비언스: 멀리서 지나가는 부드러운 바람, 조용한 새소리, 개울 물소리(골짜기숲길 근처에서만)
  *  - 바람 한 줄기(털어놓기), 나무 차임(숨쉬기), 걷는 소리, 엘리베이터
  * 종·풍경·목탁 소리는 쓰지 않습니다.
  * 첫 터치 전에는 재생하지 않고, 탭이 백그라운드로 가면 서서히 줄입니다.
@@ -11,12 +11,9 @@ import { getPref, setPref } from './metrics';
 type Surface = 'dirt' | 'grass' | 'deck';
 
 /** 배경 소리 크기 (여기 숫자만 바꾸면 전체 균형이 바뀝니다) */
-const AMBIENCE_GAIN = 0.3; // 숲 소리 전체 크기
-const BODY_GAIN = 1.0;
-const RUSTLE_GAIN = 1.3;
-const AIR_GAIN = 0.5;
-const CRICKET_GAIN = 1.0;
-const BIRD_GAIN = 1.0;
+const AMBIENCE_GAIN = 0.5; // 숲 소리 전체 크기
+const BREEZE_GAIN = 0.16; // 멀리서 지나가는 부드러운 바람
+const BIRD_GAIN = 0.05; // 조용히 지저귀는 새
 
 class ForestAudio {
   private ctx: AudioContext | null = null;
@@ -77,7 +74,6 @@ class ForestAudio {
     }
 
     this.buildWind();
-    this.buildCrickets();
     this.buildStream();
     this.applyMaster(0.8);
     this.applyAmbience();
@@ -105,94 +101,76 @@ class ForestAudio {
   }
 
   /**
-   * 바람과 나뭇잎 소리.
-   * 휴대폰·노트북 스피커는 낮은 음을 거의 내지 못하므로, 들리는 음역(약 400Hz~4kHz)에
-   * 소리를 두고 낮은 바람은 헤드폰용으로 조금만 깔아 둡니다.
+   * 멀리서 지나가는 부드러운 바람.
+   * 잡음을 넓은 음역으로 그대로 내면 지지직거리는 소리가 되므로, 높은 음을 두 번 걸러
+   * 둥글고 낮은 바람결만 아주 작게 남기고, 천천히 밀려왔다 잦아들게 합니다.
    */
   private buildWind(): void {
     const ctx = this.ctx!;
     this.windGain = ctx.createGain();
     this.windGain.gain.value = 1;
     this.windGain.connect(this.ambience!);
-    const layer = (type: BiquadFilterType, freq: number, q: number, gain: number): { f: BiquadFilterNode; g: GainNode } => {
-      const f = ctx.createBiquadFilter();
-      f.type = type;
-      f.frequency.value = freq;
-      f.Q.value = q;
-      const g = ctx.createGain();
-      g.gain.value = gain;
-      this.noiseSource().connect(f).connect(g).connect(this.windGain!);
-      return { f, g };
-    };
-    // 숲 전체에 깔리는 바람
-    const body = layer('bandpass', 480, 0.45, BODY_GAIN);
-    this.lfo(0.05, BODY_GAIN * 0.3, body.g.gain);
-    this.lfo(0.07, 140, body.f.frequency);
-    // 나뭇잎 스치는 소리(천천히 밀려왔다 잦아듦)
-    const rustle = layer('bandpass', 1900, 0.55, RUSTLE_GAIN);
-    this.lfo(0.09, RUSTLE_GAIN * 0.42, rustle.g.gain);
-    this.lfo(0.031, RUSTLE_GAIN * 0.28, rustle.g.gain);
-    this.lfo(0.06, 600, rustle.f.frequency);
-    // 높은 가지의 사각거림
-    const air = layer('highpass', 3800, 0.5, AIR_GAIN);
-    this.lfo(0.13, AIR_GAIN * 0.5, air.g.gain);
-    // 낮게 깔리는 바람(헤드폰에서 공간감)
-    layer('lowpass', 300, 0.4, 0.1);
+    const lp1 = ctx.createBiquadFilter();
+    lp1.type = 'lowpass';
+    lp1.frequency.value = 520;
+    lp1.Q.value = 0.5;
+    const lp2 = ctx.createBiquadFilter();
+    lp2.type = 'lowpass';
+    lp2.frequency.value = 700;
+    lp2.Q.value = 0.5;
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 160;
+    const g = ctx.createGain();
+    g.gain.value = BREEZE_GAIN;
+    this.noiseSource().connect(lp1).connect(lp2).connect(hp).connect(g).connect(this.windGain);
+    this.lfo(0.045, BREEZE_GAIN * 0.45, g.gain);
+    this.lfo(0.017, BREEZE_GAIN * 0.3, g.gain);
+    this.lfo(0.03, 120, lp1.frequency);
   }
 
-  private buildCrickets(): void {
-    const ctx = this.ctx!;
-    const voice = (freq: number, trill: number, slow: number, pan: number, vol: number): void => {
-      const o = ctx.createOscillator();
-      o.type = 'sine';
-      o.frequency.value = freq;
-      const a = ctx.createGain();
-      a.gain.value = 0.5;
-      this.lfo(trill, 0.5, a.gain);
-      const b = ctx.createGain();
-      b.gain.value = 0.35;
-      this.lfo(slow, 0.35, b.gain);
-      const out = ctx.createGain();
-      out.gain.value = vol;
-      o.connect(a).connect(b).connect(out);
-      if (ctx.createStereoPanner) {
-        const p = ctx.createStereoPanner();
-        p.pan.value = pan;
-        out.connect(p).connect(this.ambience!);
-      } else out.connect(this.ambience!);
-      o.start();
-    };
-    voice(4350, 31, 0.53, -0.6, 0.024 * CRICKET_GAIN);
-    voice(3820, 27, 0.37, 0.55, 0.02 * CRICKET_GAIN);
-    voice(4780, 36, 0.21, 0.1, 0.012 * CRICKET_GAIN);
-  }
-
+  /** 개울 물소리(골짜기숲길 근처에서만): 높은 음을 걸러 졸졸 흐르는 느낌만 작게 */
   private buildStream(): void {
     const ctx = this.ctx!;
     this.streamGain = ctx.createGain();
     this.streamGain.gain.value = 0;
     this.streamGain.connect(this.ambience!);
-    const hp = ctx.createBiquadFilter();
-    hp.type = 'highpass';
-    hp.frequency.value = 450;
     const bp = ctx.createBiquadFilter();
     bp.type = 'bandpass';
-    bp.frequency.value = 1700;
-    bp.Q.value = 0.6;
+    bp.frequency.value = 900;
+    bp.Q.value = 0.9;
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 1600;
     const g = ctx.createGain();
-    g.gain.value = 0.5;
-    this.noiseSource().connect(hp).connect(bp).connect(g).connect(this.streamGain);
-    this.lfo(0.9, 260, bp.frequency);
-    this.lfo(0.37, 0.12, g.gain);
-    const bp2 = ctx.createBiquadFilter();
-    bp2.type = 'bandpass';
-    bp2.frequency.value = 3400;
-    bp2.Q.value = 1.2;
-    const g2 = ctx.createGain();
-    g2.gain.value = 0.16;
-    this.noiseSource().connect(bp2).connect(g2).connect(this.streamGain);
-    this.lfo(1.7, 0.1, g2.gain);
-    this.lfo(0.23, 700, bp2.frequency);
+    g.gain.value = 0.3;
+    this.noiseSource().connect(bp).connect(lp).connect(g).connect(this.streamGain);
+    this.lfo(0.8, 160, bp.frequency);
+    this.lfo(0.33, 0.08, g.gain);
+  }
+
+  private birdBus: GainNode | null = null;
+
+  /** 새소리가 숲 멀리서 들리는 것처럼 살짝 울리게 하는 통로 */
+  private birdOut(): GainNode {
+    if (this.birdBus) return this.birdBus;
+    const ctx = this.ctx!;
+    const bus = ctx.createGain();
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 3200;
+    bus.connect(lp).connect(this.ambience!);
+    const delay = ctx.createDelay(0.5);
+    delay.delayTime.value = 0.21;
+    const fb = ctx.createGain();
+    fb.gain.value = 0.28;
+    const wet = ctx.createGain();
+    wet.gain.value = 0.35;
+    lp.connect(delay);
+    delay.connect(fb).connect(delay);
+    delay.connect(wet).connect(this.ambience!);
+    this.birdBus = bus;
+    return bus;
   }
 
   private scheduleBird(): void {
@@ -202,41 +180,47 @@ class ForestAudio {
         if (this.ctx && this.enabled && this.inForest && this.ctx.state === 'running') this.bird();
         this.scheduleBird();
       },
-      5000 + Math.random() * 7000,
+      6000 + Math.random() * 9000,
     );
   }
 
-  /** 먼 새소리 */
+  /** 조용히 지저귀는 새: 부드럽게 시작해 사라지는 짧은 소리 몇 마디 */
   private bird(): void {
     const ctx = this.ctx!;
     const t0 = ctx.currentTime + 0.05;
-    const base = 2300 + Math.random() * 1300;
-    const n = 2 + Math.floor(Math.random() * 3);
     const out = ctx.createGain();
-    out.gain.value = (0.07 + Math.random() * 0.05) * BIRD_GAIN;
-    const lp = ctx.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.value = 3600;
-    out.connect(lp);
+    out.gain.value = BIRD_GAIN * (0.6 + Math.random() * 0.4);
     if (ctx.createStereoPanner) {
       const p = ctx.createStereoPanner();
-      p.pan.value = Math.random() * 1.6 - 0.8;
-      lp.connect(p).connect(this.ambience!);
-    } else lp.connect(this.ambience!);
-    for (let i = 0; i < n; i++) {
-      const t = t0 + i * (0.17 + Math.random() * 0.05);
+      p.pan.value = Math.random() * 1.4 - 0.7;
+      out.connect(p).connect(this.birdOut());
+    } else out.connect(this.birdOut());
+    const base = 1900 + Math.random() * 900;
+    const kind = Math.floor(Math.random() * 3);
+    const note = (t: number, f0: number, f1: number, dur: number, vol: number): void => {
       const o = ctx.createOscillator();
       o.type = 'sine';
-      o.frequency.setValueAtTime(base, t);
-      o.frequency.exponentialRampToValueAtTime(base * 1.28, t + 0.05);
-      o.frequency.exponentialRampToValueAtTime(base * 0.92, t + 0.13);
+      o.frequency.setValueAtTime(f0, t);
+      o.frequency.exponentialRampToValueAtTime(f1, t + dur);
       const g = ctx.createGain();
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(1, t + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+      g.gain.linearRampToValueAtTime(vol, t + dur * 0.35);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       o.connect(g).connect(out);
       o.start(t);
-      o.stop(t + 0.16);
+      o.stop(t + dur + 0.02);
+    };
+    if (kind === 0) {
+      // 두세 번 짧게 "삐, 삐"
+      const n = 2 + Math.floor(Math.random() * 2);
+      for (let i = 0; i < n; i++) note(t0 + i * 0.32, base, base * 1.12, 0.16, 1);
+    } else if (kind === 1) {
+      // 올라갔다 내려오는 한 마디
+      note(t0, base, base * 1.25, 0.18, 1);
+      note(t0 + 0.24, base * 1.25, base * 0.95, 0.26, 0.8);
+    } else {
+      // 점점 잦아드는 네 마디
+      for (let i = 0; i < 4; i++) note(t0 + i * 0.2, base * (1.15 - i * 0.04), base * (1.05 - i * 0.04), 0.12, 1 - i * 0.2);
     }
   }
 
